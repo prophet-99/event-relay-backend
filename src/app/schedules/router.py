@@ -1,17 +1,19 @@
 from fastapi import Query, status
 from fastapi.routing import APIRouter
 
+from app.schedules.dependencies import ScheduleServiceDep
 from app.schedules.schemas import ScheduleCreate, ScheduleResponse, ScheduleUpdate
-from app.schedules.service import ScheduleService
 
-router = APIRouter(prefix="/schedule")
-schedule_service = ScheduleService()
+router = APIRouter(prefix="/schedule", tags=["Schedule Module"])
 
 
 @router.get(
     "/{schedule_id}", summary="Get schedule by id", response_model=ScheduleResponse
 )
-def get_schedule_by_id(schedule_id: str) -> ScheduleResponse:
+def get_schedule_by_id(
+    schedule_service: ScheduleServiceDep,
+    schedule_id: str,
+) -> ScheduleResponse:
     # return JSONResponse(
     #     status_code=status.HTTP_200_OK, content={"schedule_id": schedule_id}
     # )
@@ -20,6 +22,7 @@ def get_schedule_by_id(schedule_id: str) -> ScheduleResponse:
 
 @router.get("/", summary="Get all schedules", response_model=list[ScheduleResponse])
 def get_schedules(
+    schedule_service: ScheduleServiceDep,
     is_enabled: bool | None = None,
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=10, ge=1),
@@ -36,7 +39,9 @@ def get_schedules(
     response_model=ScheduleResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_schedule(schedule_request: ScheduleCreate) -> ScheduleResponse:
+def create_schedule(
+    schedule_service: ScheduleServiceDep, schedule_request: ScheduleCreate
+) -> ScheduleResponse:
     return schedule_service.create(schedule_request)
 
 
@@ -44,7 +49,9 @@ def create_schedule(schedule_request: ScheduleCreate) -> ScheduleResponse:
     "/{schedule_id}", summary="Update a schedule", response_model=ScheduleResponse
 )
 def update_schedule(
-    schedule_id: str, schedule_request: ScheduleUpdate
+    schedule_service: ScheduleServiceDep,
+    schedule_id: str,
+    schedule_request: ScheduleUpdate,
 ) -> ScheduleResponse:
     return schedule_service.update(schedule_id, schedule_request)
 
@@ -53,6 +60,7 @@ def update_schedule(
     "/{schedule_id}", summary="Delete a schedule", response_model=ScheduleResponse
 )
 def delete_schedule(
+    schedule_service: ScheduleServiceDep,
     schedule_id: str,
 ) -> ScheduleResponse:
     return schedule_service.delete(schedule_id)

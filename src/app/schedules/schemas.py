@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ScheduleBase(BaseModel):
@@ -17,8 +17,18 @@ class ScheduleCreate(ScheduleBase):
 class ScheduleUpdate(ScheduleBase):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     run_at: Optional[datetime] = None  # Old type method
-    is_enabled: bool = False
+    is_enabled: bool | None = None
+
+    @field_validator("name", "run_at", "is_enabled", mode="before")
+    @classmethod
+    def reject_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("This fied can't be null")
+
+        return value
 
 
 class ScheduleResponse(ScheduleBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
