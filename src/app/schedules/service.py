@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.schedules.exceptions import (
     DatabaseOperationException,
@@ -17,7 +17,10 @@ class ScheduleService:
         self._db = db
 
     def _get_schedule_or_raise(self, schedule_id: str) -> Schedule:
-        schedule_found = self._db.get(Schedule, schedule_id)
+        # schedule_found = self._db.get(Schedule, schedule_id)
+        statement = select(Schedule).options(joinedload(Schedule.user))
+        statement = statement.where(Schedule.id == schedule_id)
+        schedule_found = self._db.scalar(statement)
         if schedule_found is None:
             raise ScheduleNotFoundException(schedule_id)
 
@@ -40,6 +43,7 @@ class ScheduleService:
         self, is_enabled: bool | None = None, offset: int = 0, limit: int = 10
     ) -> list[ScheduleResponse]:
         statement = select(Schedule)
+        statement = statement.options(joinedload(Schedule.user))
 
         if is_enabled is not None:
             statement = statement.where(Schedule.is_enabled == is_enabled)
@@ -56,7 +60,8 @@ class ScheduleService:
         self._db.add(new_schedule)
         self._commit_or_raise()
 
-        return ScheduleResponse.model_validate(new_schedule)
+        created_schedule = self._get_schedule_or_raise(new_schedule.id)
+        return ScheduleResponse.model_validate(created_schedule)
 
     def update(
         self, schedule_id: str, schedule_request: ScheduleUpdate

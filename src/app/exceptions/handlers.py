@@ -8,6 +8,9 @@ from starlette.exceptions import HTTPException as StarletteHttpException
 from app.schedules.exception_handlers import (
     register_exception_handlers as schedules_register_exception_handlers,
 )
+from app.users.exception_handlers import (
+    register_exception_handlers as users_register_exception_handlers,
+)
 
 
 def starlette_http_exception_handler(
@@ -37,3 +40,4 @@ def register_exception_handlers(app: FastAPI) -> None:
         RequestValidationError, request_validation_exception_handler
     )
     schedules_register_exception_handlers(app)
+    users_register_exception_handlers(app)
