@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.users.schemas import UserSummary
+
 
 class ScheduleBase(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -11,7 +13,7 @@ class ScheduleBase(BaseModel):
 
 
 class ScheduleCreate(ScheduleBase):
-    pass
+    user_id: int
 
 
 class ScheduleUpdate(ScheduleBase):
@@ -32,3 +34,4 @@ class ScheduleResponse(ScheduleBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    user: UserSummary
