@@ -1,9 +1,10 @@
-# NotifyFlow
+# Event Relay
 
-> A FastAPI service for managing user notifications and their delivery lifecycle.
+> A FastAPI backend for managing multi-channel notification delivery workflows.
 
-NotifyFlow is a learning-driven backend project that evolves from a synchronous
-notification flow into an asynchronous, queue-based delivery system.
+Event Relay is designed to manage user notifications across delivery channels
+with explicit delivery states, retries, traceability and asynchronous
+processing capabilities.
 
 ## Current stack
 
@@ -14,8 +15,8 @@ notification flow into an asynchronous, queue-based delivery system.
 
 ## Architecture
 
-The project follows a **feature-oriented modular monolith** with clear
-responsibilities inside every feature:
+The project follows a **feature-oriented modular monolith**. Each feature is
+organized around explicit responsibilities:
 
 ```text
 src/app/
@@ -29,9 +30,9 @@ src/app/
 ```
 
 HTTP concerns stay in routers, business rules belong in services, and database
-mapping remains in models. The next iterations will add external delivery
-providers, retries, SQS workers, authentication, Docker, testing and database
-migrations.
+mapping remains in models. The platform is structured to support external
+delivery providers, retry policies, SQS workers, authentication, Docker,
+testing and database migrations.
 
 ## Run locally
 
@@ -42,12 +43,12 @@ uv run fastapi dev src/app/main.py
 
 The API is then available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-## Project status
+## Delivery lifecycle
 
-Active development — the notification domain is currently being designed with
-delivery states, retries, parent/clone traceability and future SQS support in
-mind.
+The notification module models queueing, active processing, scheduled retries,
+terminal failures, successful delivery, cancellation and retry traceability.
+Asynchronous queue processing will be integrated through SQS workers.
 
 ---
 
-Built to learn the Python concepts behind production-oriented FastAPI systems.
+Built for reliable notification delivery.
