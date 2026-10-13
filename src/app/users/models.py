@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import SqlAlchemyBase
 
 if TYPE_CHECKING:
+    from app.notifications.models import Notification
     from app.schedules.models import Schedule
 
 
@@ -25,3 +26,4 @@ class User(SqlAlchemyBase):
     schedules: Mapped[list["Schedule"]] = relationship(
         "Schedule", back_populates="user"
     )
+    notifications: Mapped[list["Notification"]] = relationship("Notification")
