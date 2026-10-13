@@ -3,8 +3,7 @@ from collections.abc import Generator
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-DATABASE_URL = "sqlite:///./schedule.db"
-
+DATABASE_URL = "sqlite+pysqlite:///./schedule.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 
