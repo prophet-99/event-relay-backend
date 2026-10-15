@@ -7,6 +7,7 @@ from app.api.v1.router import router as api_router_v1
 from app.db.database import SqlAlchemyBase, engine
 from app.exceptions.handlers import register_exception_handlers
 from app.notifications.models import Notification
+from app.outbox_events.models import OutboxEvent
 from app.schedules.models import Schedule
 from app.users.models import User
 from app.web.router import router as web_router
@@ -20,7 +21,13 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     SqlAlchemyBase.metadata.create_all(
-        bind=engine, tables=[Schedule.__table__, User.__table__, Notification.__table__]
+        bind=engine,
+        tables=[
+            Schedule.__table__,
+            User.__table__,
+            Notification.__table__,
+            OutboxEvent.__table__,
+        ],
     )
     yield
 

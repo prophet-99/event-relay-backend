@@ -8,10 +8,14 @@ from app.db.database import SqlAlchemyBase
 
 # Only for SqlAlchemyBase.metadata.create_all
 from app.notifications.models import Notification  # noqa: F401
+from app.outbox_events.models import OutboxEvent  # noqa: F401
 from app.schedules.models import Schedule  # noqa: F401
 from app.users.models import User  # noqa: F401
 
-pytest_plugins = ("tests.fixtures.users",)
+pytest_plugins = (
+    "tests.fixtures.users",
+    "tests.fixtures.outbox_events",
+)
 
 
 @pytest.fixture(scope="session")
