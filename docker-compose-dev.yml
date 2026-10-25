@@ -1,0 +1,28 @@
+services:
+  localstack:
+    container_name: event-relay-localstack
+    image: localstack/localstack:2026.08.3
+
+    ports:
+      - "127.0.0.1:4566:4566"
+
+    environment:
+      SERVICES: sqs
+      DEFAULT_REGION: ${AWS_REGION:-us-west-1}
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?You must set LOCALSTACK_AUTH_TOKEN in .env}
+      SQS_QUEUE_NAME: ${SQS_QUEUE_NAME:?You must set SQS_QUEUE_NAME in .env without value such as ''}
+
+    volumes:
+      - ./docker/localstack/init/boot.d/00-boot-banner.sh:/etc/localstack/init/boot.d/00-boot-banner.sh:ro
+      - ./docker/localstack/init/ready.d/00-create-queue.sh:/etc/localstack/init/ready.d/00-create-queue.sh:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fs http://localhost:4566/_localstack/health > /dev/null || exit 1",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
