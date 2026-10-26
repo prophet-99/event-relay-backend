@@ -3,7 +3,7 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class AppSettings(BaseSettings):
+class _AppSettings(BaseSettings):
     aws_region: str
     sqs_endpoint_url: str | None = None
     sqs_queue_url: str
@@ -14,5 +14,5 @@ class AppSettings(BaseSettings):
 
 
 @lru_cache
-def get_app_settings() -> AppSettings:
-    return AppSettings()
+def get_app_settings() -> _AppSettings:
+    return _AppSettings()

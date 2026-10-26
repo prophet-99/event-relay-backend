@@ -20,7 +20,10 @@ requires = ["uv_build>=0.12.15,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "app"
+module-name = ["app", "workers"]
+
+[project.scripts]
+outbox-publisher='workers.outbox_publisher_worker:main'
 
 [dependency-groups]
 dev = [
