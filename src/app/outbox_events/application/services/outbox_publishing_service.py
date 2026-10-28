@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
+from typing import Any, cast
 
 from sqlalchemy import select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session
 
 from app.outbox_events.application.dto.outbox_event_envelope import OutboxEventEnvelope
@@ -37,7 +39,9 @@ class OutboxPublishingService:
                     publish_attempt_count=OutboxEvent.publish_attempt_count + 1,
                 )
             )
-            result = self._db_session.execute(claim_statement)
+            result = cast(
+                typ=CursorResult[Any], val=self._db_session.execute(claim_statement)
+            )
             if result.rowcount != 1:
                 self._db_session.rollback()
                 return
@@ -51,7 +55,7 @@ class OutboxPublishingService:
                 event_type=publishing_outbox_event.event_type,
                 payload=publishing_outbox_event.payload,
             )
-            self._publisher.publish(outbox_event_envelope_dto)
+            self._publisher.publish(event=outbox_event_envelope_dto)
 
             publishing_outbox_event.status = OutboxEventStatus.PUBLISHED
             publishing_outbox_event.published_at = datetime.now(tz=timezone.utc)

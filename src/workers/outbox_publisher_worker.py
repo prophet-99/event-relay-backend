@@ -1,3 +1,5 @@
+from sqlalchemy.orm import Session
+
 from app.db.database import SessionLocal
 from app.outbox_events.application.ports.outbox_event_publisher import (
     OutboxEventPublisher,
@@ -15,26 +17,26 @@ from app.outbox_events.infrastructure.sqs.client import (
 from app.settings.app_settings import get_app_settings
 
 
-def main():
-    app_settings = get_app_settings()
+def run_orchestrator_once(
+    db_session: Session, event_publisher: OutboxEventPublisher
+) -> None:
+    outbox_publishing_service = OutboxPublishingService(
+        db_session=db_session, publisher=event_publisher
+    )
+    outbox_publishing_service.publish_next_pending_event()
 
+
+if __name__ == "__main__":
+    app_settings = get_app_settings()
     sqs_client = create_sqs_client(
         config=SQSClientConfig(
             region_name=app_settings.aws_region,
             endpoint_url=app_settings.sqs_endpoint_url,
         )
     )
-
     sqs_publisher: OutboxEventPublisher = SQSOutboxEventPublisher(
         sqs_client=sqs_client, queue_url=app_settings.sqs_queue_url
     )
 
     with SessionLocal() as db_session:
-        outbox_publishing_service = OutboxPublishingService(
-            db_session=db_session, publisher=sqs_publisher
-        )
-        outbox_publishing_service.publish_next_pending_event()
-
-
-if __name__ == "__main__":
-    main()
+        run_orchestrator_once(db_session=db_session, event_publisher=sqs_publisher)

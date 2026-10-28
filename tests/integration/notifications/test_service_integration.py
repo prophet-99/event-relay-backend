@@ -72,7 +72,7 @@ def test_create_notification_with_outbox_event_rollback(
 
     # Act
     with patch(
-        "app.notifications.service.uuid4",
+        target="app.notifications.service.uuid4",
         return_value=existing_isolated_outbox_event.event_id,
     ) as uuid4_spy:
         # Arrange

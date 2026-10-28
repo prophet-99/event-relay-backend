@@ -16,7 +16,7 @@ class ScheduleCreate(ScheduleBase):
     user_id: int
 
 
-class ScheduleUpdate(ScheduleBase):
+class ScheduleUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     run_at: Optional[datetime] = None  # Old type method
     is_enabled: bool | None = None
