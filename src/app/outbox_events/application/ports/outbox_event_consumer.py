@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class OutboxEventConsumer(Protocol):
+    def receive(self) -> None: ...
+    def delete(self) -> None: ...
