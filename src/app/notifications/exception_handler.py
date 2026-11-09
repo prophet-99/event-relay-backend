@@ -1,8 +1,13 @@
+from typing import cast
+
 from fastapi import FastAPI, status
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+from starlette.types import ExceptionHandler
 
-from app.notifications.exceptions import DatabaseException
+from app.notifications.application.exceptions.persistence_exceptions import (
+    DatabaseException,
+)
 
 
 def _database_exception_handler(
@@ -18,4 +23,9 @@ def _database_exception_handler(
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(DatabaseException, _database_exception_handler)
+    app.add_exception_handler(
+        exc_class_or_status_code=DatabaseException,
+        handler=cast(
+            typ=ExceptionHandler, val=_database_exception_handler
+        ),  # CAST TO AVOID WARNING ISSUE
+    )

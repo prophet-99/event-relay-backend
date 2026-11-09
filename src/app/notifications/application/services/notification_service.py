@@ -4,9 +4,11 @@ from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.notifications.application.exceptions.persistence_exceptions import (
+    DatabaseException,
+)
 from app.notifications.constants import MAX_SEND_ATTEMPTS
 from app.notifications.enums import NotificationStatus
-from app.notifications.exceptions import DatabaseException
 from app.notifications.models import Notification
 from app.notifications.schemas import NotificationCreate, NotificationResponse
 from app.outbox_events.constants import MAX_PUBLISH_ATTEMPTS
