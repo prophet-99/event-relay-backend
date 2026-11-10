@@ -7,5 +7,5 @@ class EventDispatcher:
         self.handlers = handlers
 
     def dispatch(self, outbox_event_dto: OutboxEventEnvelope) -> None:
-        search_key = f"{outbox_event_dto.event_type}-{outbox_event_dto.aggregate_type}"
+        search_key = f"{outbox_event_dto.aggregate_type}-{outbox_event_dto.event_type}"
         self.handlers[search_key].handle(outbox_event_dto=outbox_event_dto)

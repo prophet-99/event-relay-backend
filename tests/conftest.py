@@ -15,6 +15,7 @@ from app.users.models import User  # noqa: F401
 pytest_plugins = (
     "tests.fixtures.users",
     "tests.fixtures.outbox_events",
+    "tests.fixtures.notifications",
 )
 
 

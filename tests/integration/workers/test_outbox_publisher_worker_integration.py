@@ -1,5 +1,6 @@
 import json
 
+from botocore.client import BaseClient
 from sqlalchemy.orm import Session
 
 from app.outbox_events.application.ports.outbox_event_publisher import (
@@ -18,6 +19,13 @@ from app.settings.app_settings import get_app_settings
 from workers.outbox_publisher_worker import run_orchestrator_once
 
 
+# TODO: Use a dedicated SQS test queue managed by a pytest fixture.
+def _purge_queue(sqs_client: BaseClient, sqs_queue_url: str) -> None:
+    sqs_client.purge_queue(
+        QueueUrl=sqs_queue_url,
+    )
+
+
 def test_send_message_to_sqs_when_exists_pending_outbox_events(
     db_session: Session,
     existing_isolated_outbox_event: OutboxEvent,
@@ -32,10 +40,7 @@ def test_send_message_to_sqs_when_exists_pending_outbox_events(
     sqs_publisher: OutboxEventPublisher = SQSOutboxEventPublisher(
         sqs_client=sqs_client, queue_url=app_settings.sqs_queue_url
     )
-    # TODO: Use a dedicated SQS test queue managed by a pytest fixture.
-    sqs_client.purge_queue(
-        QueueUrl=app_settings.sqs_queue_url,
-    )
+    _purge_queue(sqs_client=sqs_client, sqs_queue_url=app_settings.sqs_queue_url)
 
     run_orchestrator_once(db_session=db_session, event_publisher=sqs_publisher)
 
@@ -59,3 +64,5 @@ def test_send_message_to_sqs_when_exists_pending_outbox_events(
         "event_type": existing_isolated_outbox_event.event_type,
         "payload": existing_isolated_outbox_event.payload,
     }
+
+    _purge_queue(sqs_client=sqs_client, sqs_queue_url=app_settings.sqs_queue_url)

@@ -3,6 +3,7 @@ from botocore.client import BaseClient
 from app.db.database import SessionLocal
 from app.integration.event_dispatcher import EventDispatcher
 from app.notifications.application.exceptions.delivery_exceptions import (
+    NotificationAlreadySendingException,
     NotificationAlreadySentException,
     NotificationDeliveryException,
     NotificationNotFoundException,
@@ -21,7 +22,9 @@ from app.outbox_events.infrastructure.sqs.client import (
     SQSClientConfig,
     create_sqs_client,
 )
+from app.schedules.models import Schedule  # noqa: F401
 from app.settings.app_settings import _AppSettings, get_app_settings
+from app.users.models import User  # noqa: F401
 
 
 def run_listener_once(
@@ -31,13 +34,14 @@ def run_listener_once(
     outbox_response: OutboxEventReceiveResponse | None = outbox_consumer.receive()
     if outbox_response is None:
         return
+
     try:
         event_dispatcher.dispatch(
             outbox_event_dto=outbox_response["outbox_event_envelope"]
         )
         outbox_consumer.delete(receipt_handle=outbox_response["receipt_handle"])
-    except NotificationDeliveryException:
-        print("It's a SQL Alchemy Error")
+    except (NotificationDeliveryException, NotificationAlreadySendingException) as exc:
+        print(f"This error don't need ACK: {exc}")
     except (NotificationAlreadySentException, NotificationNotFoundException):
         outbox_consumer.delete(receipt_handle=outbox_response["receipt_handle"])
 
