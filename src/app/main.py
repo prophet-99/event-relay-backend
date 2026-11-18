@@ -1,7 +1,8 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import fastapi_swagger_dark as swagger_dark_theme
+from fastapi import APIRouter, FastAPI
 
 from app.api.v1.router import router as api_router_v1
 from app.db.database import SqlAlchemyBase, engine
@@ -32,7 +33,12 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Schedule API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Schedule API", version="1.0.0", lifespan=lifespan, docs_url=None)
+
+# Swagger - dark theme
+docs_router = APIRouter()
+swagger_dark_theme.install(docs_router)
+app.include_router(docs_router)
 
 # Routes
 app.include_router(web_router)

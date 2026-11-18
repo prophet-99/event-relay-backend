@@ -142,6 +142,7 @@ source = { editable = "." }
 dependencies = [
     { name = "boto3" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "fastapi-swagger-dark" },
     { name = "jinja2" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy" },
@@ -157,6 +158,7 @@ dev = [
 requires-dist = [
     { name = "boto3", specifier = ">=1.43.114" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.128.8" },
+    { name = "fastapi-swagger-dark", specifier = ">=0.0.9" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "sqlalchemy", specifier = ">=2.0.54" },
@@ -249,6 +251,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c0/8a/2857421c2218426e9f7635f9796e4e4bb41116b4b96d2fdf0cf8ed9ab5ae/fastapi_cloud_cli-0.26.0.tar.gz", hash = "sha256:5fd64c26228c8ead803461e8b58ae64ffd586e960d97ab1fc848efac2d9539be", size = 126180, upload-time = "2026-09-10T16:52:14.522Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/30/96/0e527b3aa93c0ade8b4edc959eb064df49f816469d4781312374b4ce1bab/fastapi_cloud_cli-0.26.0-py3-none-any.whl", hash = "sha256:94029f92f3dc4289b376e1213f0d6cc7c30d4f32de7e47b5effc6dc754ab9ce9", size = 108653, upload-time = "2026-09-10T16:52:13.493Z" },
+]
+
+[[package]]
+name = "fastapi-swagger-dark"
+version = "0.0.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/90/f68af675cf21bd4f091c6e686b9d01839a956f3188fbd68c3527399a8fdb/fastapi_swagger_dark-0.0.9.tar.gz", hash = "sha256:3f981af17ced385e53bd813c4ba08c99c8ca551c1a2957295abbf12c511d97d5", size = 179841, upload-time = "2025-12-08T10:59:23.379Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/06/f880792625d4ebb75786e47867ade0c9a7163a52293847babb9adf9540c1/fastapi_swagger_dark-0.0.9-py3-none-any.whl", hash = "sha256:189ae4b8c4b58fc2faa19929517fc81495add85611b3117f650f15135d53f748", size = 58298, upload-time = "2025-12-08T10:59:22.168Z" },
 ]
 
 [[package]]
