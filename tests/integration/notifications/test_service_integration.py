@@ -1,3 +1,4 @@
+from datetime import datetime, time, timezone
 from unittest.mock import patch
 
 import pytest
@@ -13,7 +14,7 @@ from app.notifications.application.services.notification_service import (
 from app.notifications.constants import MAX_SEND_ATTEMPTS
 from app.notifications.enums import NotificationChannel, NotificationStatus
 from app.notifications.models import Notification
-from app.notifications.schemas import NotificationCreate
+from app.notifications.schemas import NotificationCreate, NotificationResponse
 from app.outbox_events.constants import MAX_PUBLISH_ATTEMPTS
 from app.outbox_events.enums import OutboxEventStatus
 from app.outbox_events.models import OutboxEvent
@@ -31,7 +32,7 @@ def test_create_notification(db_session: Session, existing_user: User) -> None:
     )
     # Act
     notification_response = notification_service.create(
-        notification_request=notification_request, user_owner_id=existing_user.id
+        user_owner_id=existing_user.id, notification_request=notification_request
     )
     # Assert
     assert notification_response.id >= 0
@@ -98,3 +99,79 @@ def test_create_notification_with_outbox_event_rollback(
     notification_statement = select(Notification)
     notifications = db_session.scalars(notification_statement).all()
     assert len(notifications) == 0
+
+
+def test_get_notifications_by_range(db_session: Session, existing_user: User) -> None:
+    # Arrange
+    notification_service = NotificationService(db=db_session)
+    notification_request = NotificationCreate(
+        title="Notificación de prueba",
+        message="Esta es una prueba de notificación",
+        channel=NotificationChannel.EMAIL,
+        destination="test@gmail.com",
+    )
+    notification_response: NotificationResponse = notification_service.create(
+        user_owner_id=existing_user.id, notification_request=notification_request
+    )
+
+    # Act
+    today = datetime.now(tz=timezone.utc).date()
+    notifications_db: list[NotificationResponse] = notification_service.get_by_range(
+        user_owner_id=existing_user.id,
+        start_date=datetime.combine(date=today, time=time.min),
+        end_date=datetime.combine(date=today, time=time.max),
+    )
+
+    # Assert
+    assert len(notifications_db) == 1
+    assert notifications_db[0].id == notification_response.id
+
+
+def test_clone_notification_from_parent(
+    db_session: Session, existing_notification: Notification
+) -> None:
+    # Arrange
+    notification_service = NotificationService(db=db_session)
+    existing_notification.status = NotificationStatus.FAILED
+    db_session.flush()
+
+    # Act
+    notification_clone = notification_service.clone_from_parent(
+        notification_id=existing_notification.id,
+        notification_request=NotificationCreate(
+            title="Test notification {CLONE}",
+            message="This is a test notification {CLONE}",
+            channel=NotificationChannel.EMAIL,
+            destination="testClone@gmail.com",
+        ),
+        user_owner_id=existing_notification.user_id,
+    )
+
+    # Assert
+    assert notification_clone.parent_notification is not None
+    assert notification_clone.parent_notification.id == existing_notification.id
+
+
+def test_delete_notification(
+    db_session: Session, existing_notification: Notification
+) -> None:
+    # Arrange
+    notification_service = NotificationService(db=db_session)
+    existing_notification.status = NotificationStatus.FAILED
+    db_session.flush()
+
+    # Act
+    notification_service.delete(
+        notification_id=existing_notification.id,
+        user_owner_id=existing_notification.user_id,
+    )
+
+    # Assert
+    today = datetime.now(tz=timezone.utc).date()
+    notifications_db: list[NotificationResponse] = notification_service.get_by_range(
+        user_owner_id=existing_notification.user_id,
+        start_date=datetime.combine(date=today, time=time.min),
+        end_date=datetime.combine(date=today, time=time.max),
+    )
+    assert len(notifications_db) == 1
+    assert notifications_db[0].status == NotificationStatus.CANCELED
