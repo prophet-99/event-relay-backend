@@ -3,6 +3,7 @@ from fastapi.routing import APIRouter
 
 from app.schedules.dependencies import ScheduleServiceDep
 from app.schedules.schemas import ScheduleCreate, ScheduleResponse, ScheduleUpdate
+from app.security.dependencies import AuthenticationSecurityDep
 
 router = APIRouter(prefix="/schedule", tags=["Schedule Module"])
 
@@ -11,6 +12,7 @@ router = APIRouter(prefix="/schedule", tags=["Schedule Module"])
     "/{schedule_id}", summary="Get schedule by id", response_model=ScheduleResponse
 )
 def get_schedule_by_id(
+    _authentication_security: AuthenticationSecurityDep,
     schedule_service: ScheduleServiceDep,
     schedule_id: str,
 ) -> ScheduleResponse:
@@ -22,6 +24,7 @@ def get_schedule_by_id(
 
 @router.get("/", summary="Get all schedules", response_model=list[ScheduleResponse])
 def get_schedules(
+    _authentication_security: AuthenticationSecurityDep,
     schedule_service: ScheduleServiceDep,
     is_enabled: bool | None = None,
     offset: int = Query(default=0, ge=0),
@@ -40,7 +43,9 @@ def get_schedules(
     status_code=status.HTTP_201_CREATED,
 )
 def create_schedule(
-    schedule_service: ScheduleServiceDep, schedule_request: ScheduleCreate
+    _authentication_security: AuthenticationSecurityDep,
+    schedule_service: ScheduleServiceDep,
+    schedule_request: ScheduleCreate,
 ) -> ScheduleResponse:
     return schedule_service.create(schedule_request)
 
@@ -49,6 +54,7 @@ def create_schedule(
     "/{schedule_id}", summary="Update a schedule", response_model=ScheduleResponse
 )
 def update_schedule(
+    _authentication_security: AuthenticationSecurityDep,
     schedule_service: ScheduleServiceDep,
     schedule_id: str,
     schedule_request: ScheduleUpdate,
@@ -60,6 +66,7 @@ def update_schedule(
     "/{schedule_id}", summary="Delete a schedule", response_model=ScheduleResponse
 )
 def delete_schedule(
+    _authentication_security: AuthenticationSecurityDep,
     schedule_service: ScheduleServiceDep,
     schedule_id: str,
 ) -> ScheduleResponse:

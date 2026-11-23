@@ -14,6 +14,9 @@ from app.notifications.exception_handler import (
 from app.schedules.exception_handlers import (
     register_exception_handlers as schedules_register_exception_handlers,
 )
+from app.security.exception_handlers import (
+    register_exception_handlers as security_register_exception_handlers,
+)
 from app.users.exception_handlers import (
     register_exception_handlers as users_register_exception_handlers,
 )
@@ -49,3 +52,4 @@ def register_exception_handlers(app: FastAPI) -> None:
     users_register_exception_handlers(app)
     schedules_register_exception_handlers(app)
     notification_register_exception_handlers(app)
+    security_register_exception_handlers(app)
