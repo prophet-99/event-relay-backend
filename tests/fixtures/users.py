@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 from sqlalchemy.orm import Session
 
+from app.security.password_hasher import hash_password
 from app.users.models import User
 
 
@@ -13,6 +14,7 @@ def existing_user(db_session: Session) -> User:
         last_name="Alcachofa Noqa",
         birthday_date=date(year=1999, month=12, day=16),
         email="alex_alcachofa@gmail.com",
+        hashed_password=hash_password(plain_password="secure12"),
     )
 
     db_session.add(new_user)

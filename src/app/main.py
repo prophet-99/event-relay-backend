@@ -42,7 +42,7 @@ app.include_router(docs_router)
 
 # Routes
 app.include_router(web_router)
-app.include_router(api_router_v1, prefix="/api/v1")
+app.include_router(router=api_router_v1, prefix="/api/v1")
 
 # Handlers
 register_exception_handlers(app)

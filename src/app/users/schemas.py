@@ -1,6 +1,13 @@
 from datetime import date, datetime, timezone
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretStr,
+    ValidationInfo,
+    field_validator,
+)
 
 
 def validate_user_is_at_least_18(birthday_date: date) -> date:
@@ -28,6 +35,8 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    password: SecretStr = Field(min_length=8, max_length=8)
+
     @field_validator("birthday_date", mode="after")
     @classmethod
     def ensure_user_is_adult(cls, birthday_date: date) -> date:

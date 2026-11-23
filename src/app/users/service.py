@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.security.password_hasher import hash_password
 from app.users.exceptions import (
     DatabaseOperationException,
     UserEmailAlreadyTakenException,
@@ -48,7 +49,13 @@ class UserService:
         return UserResponse.model_validate(user_db)
 
     def create(self, user_request: UserCreate) -> UserResponse:
-        new_user = User(**user_request.model_dump())
+        hashed_password = hash_password(
+            plain_password=user_request.password.get_secret_value()
+        )
+        new_user = User(
+            **user_request.model_dump(exclude={"password"}),
+            hashed_password=hashed_password,
+        )
 
         try:
             self._db.add(new_user)

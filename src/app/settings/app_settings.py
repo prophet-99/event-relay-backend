@@ -7,6 +7,9 @@ class _AppSettings(BaseSettings):
     aws_region: str
     sqs_endpoint_url: str | None = None
     sqs_queue_url: str
+    jwt_secret_key: str
+    jwt_algorithm: str
+    jwt_access_token_expire_minutes: int
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

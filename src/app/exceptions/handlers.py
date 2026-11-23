@@ -5,6 +5,9 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHttpException
 
+from app.auth.infrastructure.exception_handlers import (
+    register_exception_handlers as auth_register_exception_handlers,
+)
 from app.notifications.exception_handler import (
     register_exception_handlers as notification_register_exception_handlers,
 )
@@ -42,6 +45,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(
         RequestValidationError, request_validation_exception_handler
     )
-    schedules_register_exception_handlers(app)
+    auth_register_exception_handlers(app)
     users_register_exception_handlers(app)
+    schedules_register_exception_handlers(app)
     notification_register_exception_handlers(app)

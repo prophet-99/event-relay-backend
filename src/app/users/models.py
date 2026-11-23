@@ -22,6 +22,10 @@ class User(SqlAlchemyBase):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     birthday_date: Mapped[date] = mapped_column(Date, nullable=False)
     email: Mapped[str] = mapped_column(String(254), unique=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(length=254), nullable=False)
+    must_change_password: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
     is_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     schedules: Mapped[list["Schedule"]] = relationship(
         "Schedule", back_populates="user"
