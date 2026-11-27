@@ -1,0 +1,77 @@
+name: event-relay-prod
+
+services:
+  api:
+    build:
+      context: .
+      target: production
+    command: fastapi run src/app/main.py --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: sqlite+pysqlite:////app/data/schedule.db
+      AWS_REGION: ${AWS_REGION:?Set AWS_REGION in the deployment environment}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL:?Set SQS_QUEUE_URL in the deployment environment}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in the deployment environment}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - prod-sqlite:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://localhost:8000/api/v1/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  outbox-publisher:
+    build:
+      context: .
+      target: production
+    command: outbox-publisher
+    environment:
+      DATABASE_URL: sqlite+pysqlite:////app/data/schedule.db
+      AWS_REGION: ${AWS_REGION:?Set AWS_REGION in the deployment environment}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL:?Set SQS_QUEUE_URL in the deployment environment}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in the deployment environment}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    volumes:
+      - prod-sqlite:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 70s
+
+  notification-delivery:
+    build:
+      context: .
+      target: production
+    command: notification-delivery
+    environment:
+      DATABASE_URL: sqlite+pysqlite:////app/data/schedule.db
+      AWS_REGION: ${AWS_REGION:?Set AWS_REGION in the deployment environment}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL:?Set SQS_QUEUE_URL in the deployment environment}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in the deployment environment}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    volumes:
+      - prod-sqlite:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 70s
+
+volumes:
+  prod-sqlite:

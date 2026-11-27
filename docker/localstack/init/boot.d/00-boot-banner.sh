@@ -9,7 +9,7 @@ printf "\n${CYAN}"
 cat <<'BANNER'
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║          EVENT RELAY · LOCALSTACK DEVELOPMENT 🐈‍⬛             ║
+║             EVENT RELAY · LOCALSTACK SQS 🐈‍⬛                  ║
 ║                                                              ║
 ║              Boot sequence has started                       ║
 ║                                                              ║

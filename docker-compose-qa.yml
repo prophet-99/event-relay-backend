@@ -1,0 +1,97 @@
+name: event-relay-qa
+
+services:
+  localstack:
+    image: localstack/localstack:2026.08.3
+    environment:
+      SERVICES: sqs
+      DEFAULT_REGION: ${AWS_REGION:-us-west-1}
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?Set LOCALSTACK_AUTH_TOKEN in .env}
+      SQS_QUEUE_NAME: ${SQS_QUEUE_NAME:?Set SQS_QUEUE_NAME in .env}
+      SQS_ENDPOINT_STRATEGY: path
+      LOCALSTACK_HOST: localstack:4566
+      PERSISTENCE: 1
+    volumes:
+      - ./docker/localstack/init/boot.d/00-boot-banner.sh:/etc/localstack/init/boot.d/00-boot-banner.sh:ro
+      - ./docker/localstack/init/ready.d/00-create-queue.sh:/etc/localstack/init/ready.d/00-create-queue.sh:ro
+      - qa-localstack:/var/lib/localstack
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal sqs get-queue-attributes --queue-url \"http://$$LOCALSTACK_HOST/queue/$$DEFAULT_REGION/000000000000/$$SQS_QUEUE_NAME\" --attribute-names QueueArn > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      target: production
+    command: fastapi run src/app/main.py --host 0.0.0.0 --port 8000
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite+pysqlite:////app/data/schedule.db
+      SQS_ENDPOINT_URL: http://localstack:4566
+      SQS_QUEUE_URL: http://localstack:4566/queue/${AWS_REGION:-us-west-1}/000000000000/${SQS_QUEUE_NAME}
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "8000:8000"
+    volumes:
+      - qa-sqlite:/app/data
+    depends_on:
+      localstack:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://localhost:8000/api/v1/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  outbox-publisher:
+    build:
+      context: .
+      target: production
+    command: outbox-publisher
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite+pysqlite:////app/data/schedule.db
+      SQS_ENDPOINT_URL: http://localstack:4566
+      SQS_QUEUE_URL: http://localstack:4566/queue/${AWS_REGION:-us-west-1}/000000000000/${SQS_QUEUE_NAME}
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    volumes:
+      - qa-sqlite:/app/data
+    depends_on:
+      localstack:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 70s
+
+  notification-delivery:
+    build:
+      context: .
+      target: production
+    command: notification-delivery
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite+pysqlite:////app/data/schedule.db
+      SQS_ENDPOINT_URL: http://localstack:4566
+      SQS_QUEUE_URL: http://localstack:4566/queue/${AWS_REGION:-us-west-1}/000000000000/${SQS_QUEUE_NAME}
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    volumes:
+      - qa-sqlite:/app/data
+    depends_on:
+      localstack:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 70s
+
+volumes:
+  qa-sqlite:
+  qa-localstack:

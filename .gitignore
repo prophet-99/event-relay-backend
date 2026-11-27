@@ -10,9 +10,6 @@ wheels/
 .venv
 .env
 
-# Local container configuration
-.dockerignore
-
 # Local agent instructions
 AGENTS.md
 
