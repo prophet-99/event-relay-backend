@@ -27,6 +27,7 @@ module-name = ["app", "workers"]
 
 [project.scripts]
 outbox-publisher='workers.outbox_publisher_worker:main'
+notification-delivery='workers.notification_delivery_worker:main'
 
 [dependency-groups]
 dev = [
